@@ -1,85 +1,64 @@
-import { AppBar, CssBaseline, FormControl, InputLabel, MenuItem, Select, Toolbar, Typography } from '@material-ui/core';
-import React from 'react';
-import data from '../../data/snca_data.json';
-import { CarList } from '../Car/Car';
+import { Button, CssBaseline, Menu, MenuItem, Toolbar, Typography } from '@material-ui/core';
+import MenuIcon from '@material-ui/icons/Menu';
+import React, { ReactNode } from 'react';
+import CarCharts from '../Car/CarCharts';
+import CarList from '../Car/CarList';
+import iCarData from '../Car/iCarData';
+import Welcome from './Welcome';
+
+
 
 
 function App() {
-  const [marque, setMarque] = React.useState('');
-  const [modele, setModele] = React.useState('');
-  const [carburant, setCarburant] = React.useState('');
+  const carDataList: Array<iCarData> = require('../../data/snca_data.json')
+  const searchView = <CarList carlist={carDataList} />
+  const statsview = <CarCharts carlist={carDataList} />
 
-  const [voituresToDisplay, setVoituresToDisplay] = React.useState(data)
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [currentView, setCurrentView] = React.useState<ReactNode>(<Welcome/>)
 
-  const marquesList: Array<string> = [...new Set(data.map(value => value.LIBMRQ))].concat('')
 
-  const handleChangeMarque = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setMarque(event.target.value as string);
-    event.target.value === '' ? setVoituresToDisplay(data) : setVoituresToDisplay(data.filter((value) => value.LIBMRQ === event.target.value));
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  const handleChangeModele = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setModele(event.target.value as string);
-    event.target.value === '' ? setVoituresToDisplay(data.filter((value) => value.LIBMRQ === marque)) : setVoituresToDisplay(voituresToDisplay.filter((value) => value.TYPCOM === event.target.value));
+  const handleClose = () => {
+    setAnchorEl(null);
   };
 
-  const handleChangeCarburant = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setCarburant(event.target.value as string);
-    event.target.value === '' ? setVoituresToDisplay(data) : setVoituresToDisplay(voituresToDisplay.filter((value) => value.LIBCRB === event.target.value));
-  };
+ const handleClickItemRecherche = (event:React.MouseEvent<HTMLElement,MouseEvent>) => {
+   setCurrentView(searchView);
+   setAnchorEl(null);
+ };
+
+ const handleClickItemStats = (event:React.MouseEvent<HTMLElement,MouseEvent>) => {
+  setCurrentView(statsview);
+  setAnchorEl(null);
+};
 
   return (
     <div className='App' >
       <CssBaseline />
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" className="title" component="div">
-            Recherche véhicule
-            </Typography>
-        </Toolbar>
+      <Toolbar>
+        <Button onClick={handleClick} startIcon={<MenuIcon />}>
+          <Typography>Menu</Typography>
+        </Button>
+        <Menu
+          id="simple-menu"
+          anchorEl={anchorEl}
+          keepMounted
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+        >
+          <MenuItem onClick={handleClickItemRecherche}>Recherche</MenuItem>
+          <MenuItem onClick={handleClickItemStats}>Stats</MenuItem>
+        </Menu>
+      </Toolbar>
 
-      </AppBar>
-      <FormControl fullWidth variant='filled'>
-        <InputLabel id="marque-select-label">Marque</InputLabel>
-        <Select
-          labelId="marque-select-label"
-          id="marque-simple-select"
-          value={marque}
-          onChange={handleChangeMarque}
-        >
-          {
-            marquesList.sort().map((value) => <MenuItem key={value} value={value}>{value}</MenuItem>)
-          }
-        </Select>
-      </FormControl>
-      <FormControl fullWidth variant='filled'>
-        <InputLabel id="modele-select-label">Modele</InputLabel>
-        <Select
-          labelId="modele-select-label"
-          id="modele-simple-select"
-          value={modele}
-          onChange={handleChangeModele}
-        >
-          {
-            [...new Set(voituresToDisplay.map((value) => value.TYPCOM))].concat('').sort().map((value) => <MenuItem key={value} value={value}>{value}</MenuItem>)
-          }
-        </Select>
-      </FormControl>
-      <FormControl fullWidth variant='filled'>
-        <InputLabel id="carburant-select-label">Carburant</InputLabel>
-        <Select
-          labelId="carburant-select-label"
-          id="carburant-simple-select"
-          value={carburant}
-          onChange={handleChangeCarburant}
-        >
-          {
-            [...new Set(voituresToDisplay.map((value) => value.LIBCRB))].concat('').sort().map((value) => <MenuItem key={value} value={value}>{value}</MenuItem>)
-          }
-        </Select>
-      </FormControl>
-      <CarList carlist={voituresToDisplay} />
-    </div>
+      {currentView}
+
+    </div >
   );
 
 }
